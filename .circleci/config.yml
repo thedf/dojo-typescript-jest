@@ -1,0 +1,30 @@
+version: 2.1
+orbs:
+  node: circleci/node@3.0.0
+
+
+jobs:
+  build:
+    docker:
+      - image: cimg/node:current
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore node_modules cache
+          keys:
+            - dep-cache-{{ .Branch }}-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install dependencies
+          command: yarn install --frozen-lockfile
+      - run:
+          name: Build & Test
+          command: yarn lint:eslint && yarn build && yarn test
+      - save_cache:
+          name: Save node_modules cache
+          key: dep-cache-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - ./node_modules
+workflows:
+  build:
+    jobs:
+      - build
